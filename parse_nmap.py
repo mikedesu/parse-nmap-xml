@@ -58,26 +58,7 @@ def main():
                                         portid = subsubchild.attrib['portid']
                                         ports.append(portid)
                 
-
-            #print_list(addresses)
-            #print_list(hostnames)
-            #print_list(ports)
             make_urls(addresses, hostnames, ports)
-                #for port in ports:
-                    #if port == "80":
-                    #    print("http://" + addr)
-                    #elif port == "443":
-                    #    print("https://" + addr)
-                    #else:
-                    #    print("https://" + addr + ":" + port)
-            #for hostname in hostnames:
-            #    for port in ports:
-            #        if port == "80":
-            #            print("http://" + hostname)
-            #        elif port == "443":
-            #            print("https://" + hostname)
-            #        else:
-            #            print("https://" + hostname + ":" + port)
 
 if __name__=='__main__':
     main()
