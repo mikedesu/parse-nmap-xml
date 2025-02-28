@@ -1,65 +1,54 @@
 import sys
 import xml.etree.ElementTree as ET
 
+
 def usage():
     print("python3 parse_nmap.py <filename.xml>")
+
 
 def print_list(l):
     for o in l:
         print(o)
 
-def make_urls(addresses, hostnames, ports):
-    for addr in addresses:
-        for port in ports:
-            if port=="80":
-                print("http://" + addr)
-            elif port=="443":
-                print("https://" + addr)
-            else:
-                print("https://" + addr + ":" + port)
-    for hostname in hostnames:
-        for port in ports:
-            if port=="80":
-                print("http://" + hostname)
-            elif port=="443":
-                print("https://" + hostname)
-            else:
-                print("http://" + hostname + ":" + port)
-                print("https://" + hostname + ":" + port)
+
+# grok-2-latest refactor: 2/28/2025
+def make_urls(a, h, p):
+    for x in a + h:
+        for y in p:
+            z = f'http{"s"if y=="443"else""}://{x}{":"+y if y not in["80","443"]else""}'
+            print(z)
+            if y not in ["80", "443"]:
+                print(z.replace("http", "https"))
+
 
 def main():
     if len(sys.argv) != 2:
         usage()
         sys.exit(-1)
-    filename = sys.argv[1]
-    tree = ET.parse(filename)
-    root = tree.getroot()
-    
-    for child in root:
-        if child.tag == "host":
-            addresses = []
-            hostnames = []
-            ports = []
-            for subchild in child:
-                if subchild.tag == "address":
-                    addr = subchild.attrib['addr']
-                    addresses.append(addr)
-                if subchild.tag == "hostnames":
-                    for subsubchild in subchild:
-                        if subsubchild.tag == "hostname":
-                            hostname = subsubchild.attrib['name']
-                            hostnames.append(hostname)
-                if subchild.tag == "ports":
-                    for subsubchild in subchild:
-                        if subsubchild.tag == "port":
-                            for subsubsubchild in subsubchild:
-                                if subsubsubchild.tag == "state":
-                                    if subsubsubchild.attrib['state'] == "open":
-                                        portid = subsubchild.attrib['portid']
-                                        ports.append(portid)
-                
-            make_urls(addresses, hostnames, ports)
 
-if __name__=='__main__':
+    # grok-2-latest refactor: 2/28/2025
+    f = sys.argv[1]
+    r = ET.parse(f).getroot()
+    for c in r:
+        if c.tag == "host":
+            a = [s.attrib["addr"] for s in c if s.tag == "address"]
+            h = [
+                x.attrib["name"]
+                for s in c
+                if s.tag == "hostnames"
+                for x in s
+                if x.tag == "hostname"
+            ]
+            p = [
+                x.attrib["portid"]
+                for s in c
+                if s.tag == "ports"
+                for x in s
+                if x.tag == "port"
+                and any(y.tag == "state" and y.attrib["state"] == "open" for y in x)
+            ]
+            make_urls(a, h, p)
+
+
+if __name__ == "__main__":
     main()
-
